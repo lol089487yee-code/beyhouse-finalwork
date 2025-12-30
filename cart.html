@@ -120,113 +120,128 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyC7XXQZAX2tg7x9Z4aUUiPAX8Hwzb_Eldc",
-            authDomain: "final-works-c7d3b.firebaseapp.com",
-            projectId: "final-works-c7d3b",
-            storageBucket: "final-works-c7d3b.firebasestorage.app",
-            messagingSenderId: "950920997570",
-            appId: "1:950920997570:web:71b949403282e57cd2a95b",
-            measurementId: "G-WZNES5XVVY"
-        };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        
-        // 商品資料庫同步為陀螺
-        const products = {
-            "ux-17": { name: "UX-17 隕星龍騎士", price: 550, img: "images/ux17.jpg" },
-            "bx-23": { name: "BX-23 鳳凰飛翼 豪華組", price: 495, img: "images/bx23.jpg" },
-            "cx-07": { name: "CX-07 天馬爆擊", price: 575, img: "images/cx07.jpg" },
-            "ux-15": { name: "UX-15 鮫鯊狂鱗 改造組", price: 795, img: "images/ux15.jpg" },
-            "bx-46": { name: "BX-46 無限衝擊 對戰組", price: 1999, img: "images/bx46.jpg" },
-            "cx-11": { name: "CX-11 帝王威能 改造組", price: 995, img: "images/cx11.jpg" }
-        };
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    
+    // 請確保此 Config 與你的 product-detail.html 完全一致
+    const firebaseConfig = {
+        apiKey: "AIzaSyC7XXQZAX2tg7x9Z4aUUiPAX8Hwzb_Eldc",
+        authDomain: "final-works-c7d3b.firebaseapp.com",
+        projectId: "final-works-c7d3b",
+        storageBucket: "final-works-c7d3b.firebasestorage.app",
+        messagingSenderId: "950920997570",
+        appId: "1:950920997570:web:71b949403282e57cd2a95b",
+        measurementId: "G-WZNES5XVVY"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
 
-        onAuthStateChanged(auth, (user) => {
-            const userDisplay = document.getElementById('user-display');
-            const btnLogout = document.getElementById('btn-logout');
-            if (user) {
-                userDisplay.style.display = 'inline-block';
-                userDisplay.innerHTML = `<i class="fa-solid fa-user-astronaut me-2"></i> ${user.email.split('@')[0]}`;
-                btnLogout.style.display = 'inline-block';
-            }
-        });
+    // 1. 登入狀態監控
+    onAuthStateChanged(auth, (user) => {
+        const userDisplay = document.getElementById('user-display');
+        const btnLogout = document.getElementById('btn-logout');
+        if (user) {
+            userDisplay.style.display = 'inline-block';
+            userDisplay.innerHTML = `<i class="fa-solid fa-user-astronaut me-2"></i> ${user.email.split('@')[0]}`;
+            btnLogout.style.display = 'inline-block';
+        } else {
+            userDisplay.style.display = 'none';
+            btnLogout.style.display = 'none';
+        }
+    });
 
-        window.loadCart = function() {
-            const cartItem = localStorage.getItem('cartItem');
-            const cartQty = localStorage.getItem('cartQty') || 1;
-            const container = document.getElementById('cart-items-container');
-            const emptyState = document.getElementById('empty-state');
-            const cartContent = document.getElementById('cart-content');
+    // 2. 載入購物車內容 (支援多項商品)
+    window.loadCart = function() {
+        const cart = JSON.parse(localStorage.getItem('cart')) || []; // 讀取陣列
+        const container = document.getElementById('cart-items-container');
+        const emptyState = document.getElementById('empty-state');
+        const cartContent = document.getElementById('cart-content');
 
-            if (cartItem && products[cartItem]) {
-                const p = products[cartItem];
-                container.innerHTML = `
+        if (cart.length > 0) {
+            let html = "";
+            cart.forEach((item, index) => {
+                html += `
                     <div class="cart-item">
-                        <img src="${p.img}" class="cart-img me-4 shadow-sm">
+                        <img src="${item.img}" class="cart-img me-4 shadow-sm">
                         <div class="flex-grow-1">
-                            <h5 class="fw-bold mb-1">${p.name}</h5>
+                            <h5 class="fw-bold mb-1">${item.name}</h5>
                             <span class="badge bg-primary bg-opacity-10 text-primary small">全新正版</span>
                         </div>
                         <div class="text-end me-4">
-                            <div class="fw-bold mb-2 fs-5">$<span class="price">${p.price}</span></div>
-                            <input type="number" class="qty-input" value="${cartQty}" min="1" onchange="updateTotal()">
+                            <div class="fw-bold mb-2 fs-5">$<span class="item-price">${item.price.toLocaleString()}</span></div>
+                            <input type="number" class="qty-input" value="${item.quantity}" min="1" 
+                                   onchange="updateItemQty(${index}, this.value)">
                         </div>
-                        <button class="trash-btn" onclick="removeItem()"><i class="fa-solid fa-trash-can"></i></button>
+                        <button class="trash-btn" onclick="removeItem(${index})">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
                     </div>`;
-                updateTotal();
-                emptyState.style.display = 'none';
-                cartContent.style.display = 'flex';
-            } else {
-                cartContent.style.display = 'none';
-                emptyState.style.display = 'block';
-            }
-        };
+            });
+            container.innerHTML = html;
+            updateTotal();
+            emptyState.style.display = 'none';
+            cartContent.style.display = 'flex';
+        } else {
+            cartContent.style.display = 'none';
+            emptyState.style.display = 'block';
+        }
+    };
 
-        window.checkout = function() {
-            const btn = document.querySelector('.btn-checkout');
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> 正在傳送訂單...';
-            btn.disabled = true;
-            setTimeout(() => {
-                alert("感謝您的訂單！戰鬥配備即將發送。");
-                localStorage.removeItem('cartItem');
-                localStorage.removeItem('cartQty');
-                window.location.href = "index.html";
-            }, 1500);
-        };
+    // 3. 更新特定商品的數量
+    window.updateItemQty = function(index, newQty) {
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        if (newQty < 1) newQty = 1;
+        cart[index].quantity = parseInt(newQty);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateTotal();
+    };
 
-        document.getElementById('btn-logout').addEventListener('click', () => {
-            if(confirm("確定要登出並清空發射盒嗎？")) {
-                localStorage.clear();
-                signOut(auth).then(() => window.location.href = "index.html");
-            }
+    // 4. 計算總金額
+    window.updateTotal = function() {
+        const cart = JSON.parse(localStorage.getItem('cart')) || [];
+        let total = 0;
+        cart.forEach(item => {
+            total += item.price * item.quantity;
         });
+        document.getElementById('subtotal').innerText = total.toLocaleString();
+        document.getElementById('final-total').innerText = total.toLocaleString();
+    };
 
-        window.loadCart();
-    </script>
+    // 5. 移除商品
+    window.removeItem = function(index) {
+        if(confirm('確定要從發射盒移除此商品嗎？')) {
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            cart.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            loadCart(); // 重新渲染
+        }
+    };
 
-    <script>
-        function removeItem() {
-            if(confirm('確定要移除此商品嗎？')) {
-                localStorage.removeItem('cartItem');
-                localStorage.removeItem('cartQty');
-                window.location.reload();
-            }
+    // 6. 結帳功能
+    window.checkout = function() {
+        const btn = document.querySelector('.btn-checkout');
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> 正在傳送訂單...';
+        btn.disabled = true;
+        setTimeout(() => {
+            alert("感謝您的訂單！戰鬥配備即將發送。");
+            localStorage.removeItem('cart'); // 清空購物車陣列
+            window.location.href = "index.html";
+        }, 1500);
+    };
+
+    // 7. 登出
+    document.getElementById('btn-logout').addEventListener('click', () => {
+        if(confirm("確定要登出嗎？購物車內容將會保留。")) {
+            signOut(auth).then(() => window.location.href = "index.html");
         }
-        function updateTotal() {
-            const qtyInput = document.querySelector('.qty-input');
-            const price = document.querySelector('.price').innerText;
-            const total = parseInt(qtyInput.value) * parseInt(price);
-            document.getElementById('subtotal').innerText = total.toLocaleString();
-            document.getElementById('final-total').innerText = total.toLocaleString();
-            localStorage.setItem('cartQty', qtyInput.value);
-        }
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    });
+
+    // 初次執行
+    window.loadCart();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
+
