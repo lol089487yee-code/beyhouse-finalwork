@@ -316,23 +316,40 @@
         }
     });
 
-    // 購物車按鈕攔截 (防止未登入購買)
-    document.querySelectorAll('.btn-gradient').forEach(btn => {
-        // 排除掉「進入賣場」那個 Hero 按鈕
-        if (btn.innerText.includes("加入購物車")) {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (!auth.currentUser) {
-                    alert("請先登入會員，才能將帥氣的陀螺加入購物車喔！");
-                    window.location.href = "login.html";
-                } else {
-                    // 這裡以後可以串接真正的購物車 Firebase 資料庫
-                    const productName = btn.closest('.card-body').querySelector('.product-title').innerText;
-                    alert(`【${productName}】已成功放入您的發射盒(購物車)！`);
-                }
-            });
-        }
-    });
+    // 購物車按鈕攔截 (讓首頁按鈕也能真正存入 localStorage)
+document.querySelectorAll('.btn-gradient').forEach(btn => {
+    if (btn.innerText.includes("加入購物車")) {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!auth.currentUser) {
+                alert("請先登入會員，才能將帥氣的陀螺加入購物車喔！");
+                window.location.href = "login.html";
+                return;
+            }
+
+            // 取得產品資訊 (從 HTML 結構抓取)
+            const card = btn.closest('.custom-card');
+            const id = card.querySelector('a.card-img-link').getAttribute('href').split('=')[1];
+            const name = card.querySelector('.product-title').innerText;
+            const priceText = card.querySelector('.price-tag').innerText.replace('$', '').replace(',', '');
+            const price = parseInt(priceText);
+            const img = card.querySelector('img').getAttribute('src');
+
+            // 存入 localStorage
+            let cart = JSON.parse(localStorage.getItem('cart')) || [];
+            const existingIndex = cart.findIndex(item => item.id === id);
+
+            if (existingIndex > -1) {
+                cart[existingIndex].quantity += 1;
+            } else {
+                cart.push({ id, name, price, img, quantity: 1 });
+            }
+
+            localStorage.setItem('cart', JSON.stringify(cart));
+            alert(`【${name}】已成功放入您的發射盒！`);
+        });
+    }
+});
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
