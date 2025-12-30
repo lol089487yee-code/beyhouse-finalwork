@@ -311,14 +311,46 @@
         }
 
         // 加入購物車
-        document.getElementById('btn-add-cart').addEventListener('click', () => {
-            if(!auth.currentUser) {
-                alert("請先登入會員，才能準備您的戰鬥配備！");
-                window.location.href = "login.html";
-                return;
-            }
-            alert(`【${product.name}】已成功放入您的購物車！`);
+        // --- 修改後的加入購物車邏輯 ---
+document.getElementById('btn-add-cart').addEventListener('click', () => {
+    // 1. 檢查登入狀態
+    if(!auth.currentUser) {
+        alert("請先登入會員，才能準備您的戰鬥配備！");
+        window.location.href = "login.html";
+        return;
+    }
+
+    // 2. 取得目前選取的數量
+    const qty = parseInt(document.getElementById('p-qty').value) || 1;
+
+    // 3. 從 localStorage 讀取現有的購物車陣列 (如果沒有就給空陣列)
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+    // 4. 檢查購物車內是否已經有這件商品
+    const existingIndex = cart.findIndex(item => item.id === productId);
+
+    if (existingIndex > -1) {
+        // 如果已經有了，直接增加數量
+        cart[existingIndex].quantity += qty;
+    } else {
+        // 如果沒有，新增一個商品物件進去
+        cart.push({
+            id: productId,
+            name: product.name,
+            price: product.price,
+            img: product.img,
+            quantity: qty
         });
+    }
+
+    // 5. 存回 localStorage
+    localStorage.setItem('cart', JSON.stringify(cart));
+
+    // 6. 成功提示與導向 (可選：直接跳轉到購物車頁面，或讓使用者留在原地)
+    if(confirm(`【${product.name}】x ${qty} 已成功放入發射盒！\n是否立即前往購物車結帳？`)) {
+        window.location.href = "cart.html";
+    }
+});
 
         // 登入狀態
         onAuthStateChanged(auth, (user) => {
@@ -338,5 +370,6 @@
 </body>
 
 </html>
+
 
 
