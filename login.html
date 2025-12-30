@@ -185,27 +185,41 @@
         document.getElementById('captcha-display').addEventListener('click', generateCaptcha);
 
         document.getElementById('btn-login').addEventListener('click', () => {
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const captchaInput = document.getElementById('captcha-input').value.toUpperCase();
+    // 修正點：加上 .trim() 去除前後空格
+    const email = document.getElementById('email').value.trim(); 
+    const password = document.getElementById('password').value;
+    const captchaInput = document.getElementById('captcha-input').value.toUpperCase();
 
-            if(captchaInput !== currentCaptcha) {
-                alert("驗證碼錯誤，請重新輸入！");
-                generateCaptcha();
-                document.getElementById('captcha-input').value = "";
-                return;
+    // 在 Console 印出來確認抓到的值是否正確
+    console.log("嘗試登入 Email:", email);
+
+    if(!email || !password) {
+        alert("請輸入電子信箱與密碼！");
+        return;
+    }
+
+    if(captchaInput !== currentCaptcha) {
+        alert("驗證碼錯誤，請重新輸入！");
+        generateCaptcha();
+        document.getElementById('captcha-input').value = "";
+        return;
+    }
+
+    signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+            alert("登入成功！");
+            window.location.href = "index.html";
+        })
+        .catch((error) => {
+            console.error("Firebase 錯誤詳細內容:", error); // 顯示完整錯誤在控制台
+            if (error.code === 'auth/invalid-email') {
+                alert("登入失敗：Email 格式不正確");
+            } else {
+                alert("登入失敗：帳號或密碼錯誤");
             }
-
-            signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    alert("登入成功！");
-                    window.location.href = "index.html";
-                })
-                .catch((error) => {
-                    alert("登入失敗：帳號或密碼錯誤");
-                    generateCaptcha();
-                });
+            generateCaptcha();
         });
+});
     </script>
 </body>
 </html>
