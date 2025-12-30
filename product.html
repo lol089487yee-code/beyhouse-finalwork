@@ -1,0 +1,339 @@
+<!DOCTYPE html> 
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>產品詳情 - BEYHOUSE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        :root { 
+            --primary-blue: #0099ff; 
+            --sky-blue: #87CEEB;
+            --primary-gradient: linear-gradient(135deg, #87CEEB 0%, #0099ff 100%); 
+        }
+        
+        body { 
+            background: linear-gradient(rgba(255,255,255,0.8), rgba(255,255,255,0.8)), url('images/bg-bey.jpg') no-repeat center center fixed;
+            background-size: cover;
+            color: #333; 
+            font-family: 'Noto Sans TC', sans-serif; 
+            min-height: 100vh; 
+        }
+
+        /* 導覽列 */
+        .navbar { background: rgba(255, 255, 255, 0.9) !important; backdrop-filter: blur(15px); border-bottom: 2px solid var(--sky-blue); }
+        .brand-logo { font-family: 'Orbitron', sans-serif; letter-spacing: 2px; color: var(--primary-blue); font-weight: bold; }
+
+        /* 產品圖片卡片：加入浮動動畫 */
+        .product-image-card { 
+            background: rgba(255, 255, 255, 0.5); 
+            border: 1px solid rgba(255, 255, 255, 0.8); 
+            backdrop-filter: blur(10px); 
+            border-radius: 30px; 
+            padding: 50px; 
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.05);
+            transition: 0.5s;
+        }
+        
+        .product-image-card::before {
+            content: "";
+            position: absolute;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(0,153,255,0.1) 0%, transparent 70%);
+            top: -50%; left: -50%;
+            animation: rotateBg 10s linear infinite;
+        }
+
+        @keyframes rotateBg { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        .product-image-card img { 
+            max-width: 100%; 
+            max-height: 450px; 
+            z-index: 2;
+            position: relative;
+            filter: drop-shadow(0 15px 30px rgba(0,0,0,0.15));
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+        }
+
+        /* 產品資訊區 */
+        .product-info { 
+            background: white; 
+            border-radius: 30px; 
+            padding: 50px; 
+            box-shadow: 0 20px 50px rgba(0, 153, 255, 0.1);
+        }
+
+        .price-tag { 
+            font-size: 3rem; 
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800; 
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        /* 數量輸入框美化 */
+        .qty-control {
+            border: 2px solid #eee;
+            border-radius: 15px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+        .qty-control input { border: none; font-weight: bold; font-size: 1.2rem; }
+
+        .btn-gradient { 
+            background: var(--primary-gradient); 
+            border: none; color: white; font-weight: bold; 
+            padding: 18px; border-radius: 15px; transition: 0.4s; 
+            font-size: 1.3rem;
+            box-shadow: 0 10px 20px rgba(0, 153, 255, 0.2);
+        }
+        .btn-gradient:hover { transform: scale(1.02); box-shadow: 0 15px 30px rgba(0, 153, 255, 0.4); color: white; }
+
+        /* 詳細規格表 */
+        .spec-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid #eee;
+        }
+        .table thead { background: #f8f9fa; }
+        .text-label { color: var(--primary-blue); font-weight: bold; background: #f0f9ff; }
+        
+        /* Tab 按鈕 */
+        .nav-pills .nav-link {
+            border-radius: 10px;
+            color: #666;
+            font-weight: bold;
+            margin-right: 10px;
+            padding: 12px 25px;
+        }
+        .nav-pills .nav-link.active {
+            background: var(--primary-blue);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top py-3">
+        <div class="container">
+            <a class="navbar-brand brand-logo fs-3" href="index.html"><i class="fa-solid fa-spinner fa-spin-slow"></i> BEYHOUSE</a>
+            <div class="ms-auto d-flex align-items-center gap-3">
+                <span id="user-display" class="badge bg-primary bg-opacity-10 text-primary border border-primary px-3 py-2" style="display:none;"></span>
+                <a href="index.html" class="btn btn-outline-secondary rounded-pill px-4">回首頁</a>
+                <button id="btn-logout" class="btn btn-outline-danger rounded-pill px-4" style="display:none;">登出</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5 mb-5">
+        <div class="row g-5">
+            <div class="col-lg-6">
+                <div class="product-image-card">
+                    <img id="p-img" src="" alt="Beyblade X">
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="product-info h-100 d-flex flex-column justify-content-center">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="index.html">商店首頁</a></li>
+                            <li class="breadcrumb-item active" id="p-brand-bread">BX 系列</li>
+                        </ol>
+                    </nav>
+                    <h1 class="product-title mb-2 fw-bold display-5" id="p-name">Loading...</h1>
+                    <p class="text-primary fw-bold fs-5 mb-4" id="p-desc-short">正在讀取...</p>
+                    
+                    <div class="mb-5">
+                        <span class="price-tag" id="p-price">$0</span>
+                    </div>
+                    
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <div class="qty-control">
+                                <span class="px-3 text-secondary fw-bold">數量</span>
+                                <input type="number" class="form-control text-center py-3" id="p-qty" value="1" min="1" max="10">
+                            </div>
+                        </div>
+                        <div class="col-md-8">
+                            <button class="btn btn-gradient w-100" id="btn-add-cart">
+                                <i class="fa-solid fa-bolt-lightning me-2"></i> 立即發射 (加入購物車)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mt-5 pt-4">
+            <div class="col-lg-10 mx-auto">
+                <div class="product-info-long p-4 p-md-5 mb-4 shadow-sm" style="background: white; border-radius: 30px; border: 1px solid #eee;">
+                    <div class="d-flex align-items-center mb-4">
+                        <div style="width: 5px; height: 30px; background: var(--primary-gradient); border-radius: 10px;" class="me-3"></div>
+                        <h3 class="fw-bold m-0">產品戰鬥特色</h3>
+                    </div>
+                    
+                    <p id="p-desc-long" class="fs-5 text-secondary mb-5" style="line-height: 2;">載入中...</p>
+                    
+                    <div class="row g-4 mt-2">
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-4" style="background: #f8fbff; border: 1px dashed var(--sky-blue);">
+                                <small class="text-primary fw-bold d-block mb-1">系列序號</small>
+                                <span class="fs-5 fw-bold" id="p-series-id">-</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 rounded-4" style="background: #f8fbff; border: 1px dashed var(--sky-blue);">
+                                <small class="text-primary fw-bold d-block mb-1">陀螺類型</small>
+                                <span class="fs-5 fw-bold" id="p-type-id">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info border-0 rounded-4 p-4 shadow-sm">
+                    <h5 class="fw-bold"><i class="fa-solid fa-circle-info me-2"></i> 購買須知</h5>
+                    <ul class="mb-0 small text-secondary">
+                        <li>本商品不含發射器（除非標明為豪華組/對戰組）。</li>
+                        <li>商品顏色可能因螢幕顯示有所差異，請以實物為準。</li>
+                        <li>戰鬥陀螺為消耗性運動產品，使用後產生刮痕或掉漆屬正常戰鬥現象。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-LcCfcPYCYAQZ7n45YCe6tCY_jb-ygvI",
+            authDomain: "sonicboom-shop.firebaseapp.com",
+            projectId: "sonicboom-shop",
+            storageBucket: "sonicboom-shop.firebasestorage.app",
+            messagingSenderId: "976804831944",
+            appId: "1:976804831944:web:6ede6a95196478bd49bbfd",
+            measurementId: "G-3FEKWL0QXZ"
+        };
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        const products = {
+            "ux-17": {
+                name: "UX-17 隕星龍騎士",
+                price: 550,
+                img: "images/ux17.jpg",
+                brand: "UX 系列",
+                short: "攻擊型 / 搭載橡膠攻擊刃",
+                desc: "隕星龍騎士是 UX 系列的巔峰之作，刃部鑲嵌特殊橡膠材質，能在碰撞時產生極大的摩擦力，將對手瞬間彈出場外。適合追求極致進攻與爆裂打法的玩家。",
+                specs: `<tr><td class="text-label p-3" style="width:200px">陀螺類型</td><td class="p-3">攻擊型 (Attack)</td></tr>
+                        <tr><td class="text-label p-3">核心零件</td><td>Blade: Shinobi Shadow / Bit: Rubber Flat</td></tr>
+                        <tr><td class="text-label p-3">戰鬥力評分</td><td>攻擊: 10 / 防禦: 2 / 持久: 3</td></tr>`
+            },
+            "bx-23": {
+                name: "BX-23 鳳凰飛翼 豪華組",
+                price: 495,
+                img: "images/bx23.jpg",
+                brand: "BX 系列",
+                short: "攻擊型 / 附帶拉繩型發射器",
+                desc: "金屬塗層的重裝之翼！鳳凰飛翼以極高重量的 Blade 著稱，其離心力在超加速時能產生毀滅性的撞擊力。套組內含限定版紅色拉繩發射器。",
+                specs: `<tr><td class="text-label p-3">陀螺類型</td><td class="p-3">攻擊型 (Attack)</td></tr>
+                        <tr><td class="text-label p-3">核心零件</td><td>Blade: Phoenix Wing / Bit: Gear Flat</td></tr>`
+            },
+            "cx-07": {
+                name: "CX-07 天馬爆擊",
+                price: 575,
+                img: "images/cx07.jpg",
+                brand: "CX 系列",
+                short: "攻擊型 / 變形軸心",
+                desc: "CX 系列代表作，擁有獨特的離心變形機構。在高速旋轉時，軸心會自動切換為攻擊防禦模式模式，隨旋轉速度下降後自動轉為攻擊模式加速攻擊。",
+                specs: `<tr><td class="text-label p-3">陀螺類型</td><td class="p-3">戰術變換型 (Tactical)</td></tr>
+                        <tr><td class="text-label p-3">特殊能力</td><td class="p-3">Centrifugal Morphing (離心變形)</td></tr>`
+            },
+            "ux-15": {
+                name: "UX-15 鮫鯊狂鱗 改造組",
+                price: 795,
+                img: "images/ux15.jpg",
+                brand: "UX 系列",
+                short: "攻擊型 / 巨大上升刃",
+                desc: "強勢收錄「SHARKSCALE 鮫鯊狂鱗」超低位強襲系！其中最狂的是 4-50 固鎖設計，超低重心＋斜斬配置，真正做到「貼地猛擊、爆破致勝」！",
+                specs: `<tr><td class="text-label p-3">陀螺類型</td><td class="p-3">攻擊型 (Attack)</td></tr>
+                        <tr><td class="text-label p-3">核心零件</td><td>Blade: Shark Edge / Ratchet: 3-60 / Bit: Low Flat</td></tr>`
+            },
+            "bx-46": {
+                name: "BX-46 無限衝擊 對戰組",
+                price: 1999,
+                img: "images/bx46.jpg",
+                brand: "BX 系列",
+                short: "對戰套裝 / 雙機+競技場",
+                desc: "新手入門首選！本套裝包含兩顆高性能戰鬥陀螺、兩具發射器以及一個無限衝擊競技場。開箱即刻享受無限衝擊的快感。",
+                specs: `<tr><td class="text-label p-3">套裝內容</td><td class="p-3">陀螺 x2、發射器 x2、戰鬥盤 x1</td></tr>
+                        <tr><td class="text-label p-3">對象年齡</td><td class="p-3">6歲以上</td></tr>`
+            },
+            "cx-11": {
+                name: "CX-11 帝王威能 改造組",
+                price: 995,
+                img: "images/cx11.jpg",
+                brand: "CX 系列",
+                short: "平衡型 / 複合金屬材質",
+                desc: "帝王威能結合了 CX 系列最新的金屬熱處理技術，使其在與對手激烈碰撞時依然能保持完整的重心圓周。是一顆同時具備攻擊力與持久力的全能型機體。",
+                specs: `<tr><td class="text-label p-3">陀螺類型</td><td class="p-3">平衡型 (Balance)</td></tr>
+                        <tr><td class="text-label p-3">核心零件</td><td>Blade: Emperor Power / Bit: Unite</td></tr>`
+            }
+        };
+
+        const params = new URLSearchParams(window.location.search);
+        const productId = params.get('id') || "ux-17";
+        const product = products[productId];
+
+        if (product) {
+            document.getElementById('p-img').src = product.img;
+            document.getElementById('p-name').innerText = product.name;
+            document.getElementById('p-brand-bread').innerText = product.brand;
+            document.getElementById('p-price').innerText = "$" + product.price.toLocaleString();
+            document.getElementById('p-desc-short').innerText = product.short;
+            document.getElementById('p-desc-long').innerText = product.desc;
+            
+            // 新增的對應欄位
+            document.getElementById('p-series-id').innerText = product.brand; // 例如: UX 系列
+            document.getElementById('p-type-id').innerText = product.short.split(' / ')[0]; // 抓取「攻擊型」
+        }
+
+        // 加入購物車
+        document.getElementById('btn-add-cart').addEventListener('click', () => {
+            if(!auth.currentUser) {
+                alert("請先登入會員，才能準備您的戰鬥配備！");
+                window.location.href = "login.html";
+                return;
+            }
+            alert(`【${product.name}】已成功放入您的發射盒！`);
+        });
+
+        // 登入狀態
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                const display = document.getElementById('user-display');
+                display.style.display = 'block';
+                display.innerHTML = `<i class="fa-solid fa-user-astronaut me-2"></i> ${user.email.split('@')[0]}`;
+                document.getElementById('btn-logout').style.display = 'block';
+            }
+        });
+
+        document.getElementById('btn-logout').addEventListener('click', () => {
+            signOut(auth).then(() => window.location.href = "index.html");
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
