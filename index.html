@@ -316,7 +316,7 @@
         }
     });
 
-    // 購物車按鈕攔截 (讓首頁按鈕也能真正存入 localStorage)
+    // 修正版：讓首頁按鈕能真正存入資料
 document.querySelectorAll('.btn-gradient').forEach(btn => {
     if (btn.innerText.includes("加入購物車")) {
         btn.addEventListener('click', (e) => {
@@ -327,22 +327,22 @@ document.querySelectorAll('.btn-gradient').forEach(btn => {
                 return;
             }
 
-            // 取得產品資訊 (從 HTML 結構抓取)
+            // 1. 抓取 HTML 上的資料
             const card = btn.closest('.custom-card');
-            const id = card.querySelector('a.card-img-link').getAttribute('href').split('=')[1];
             const name = card.querySelector('.product-title').innerText;
             const priceText = card.querySelector('.price-tag').innerText.replace('$', '').replace(',', '');
             const price = parseInt(priceText);
-            const img = card.querySelector('img').getAttribute('src');
+            const img = card.querySelector('img').src; // 抓取完整圖片路徑
 
-            // 存入 localStorage
+            // 2. 存入 localStorage (陣列格式)
             let cart = JSON.parse(localStorage.getItem('cart')) || [];
-            const existingIndex = cart.findIndex(item => item.id === id);
-
+            
+            // 檢查是否已存在
+            const existingIndex = cart.findIndex(item => item.name === name);
             if (existingIndex > -1) {
                 cart[existingIndex].quantity += 1;
             } else {
-                cart.push({ id, name, price, img, quantity: 1 });
+                cart.push({ name, price, img, quantity: 1 });
             }
 
             localStorage.setItem('cart', JSON.stringify(cart));
